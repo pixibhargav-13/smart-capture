@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useApp } from "@/lib/context";
 import Modal from "@/components/Modal";
-import { Plus, Pencil, Trash2, Mail, Phone, History, Camera, CheckCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Mail, Phone, History, Camera } from "lucide-react";
 
 export default function EmployeesPage() {
   const { employees, machines, productionEntries, addEmployee, updateEmployee, deleteEmployee } = useApp();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useApp } from "@/lib/context";
 import { extractCncData } from "@/lib/ocr";
 import {
