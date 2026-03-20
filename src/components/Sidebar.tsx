@@ -52,12 +52,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     
     const calculateTimeLeft = () => {
       const now = new Date();
-      // Calculate exactly how many seconds until the next rigidly defined clock target!
-      // Example: If interval is 60, it targets the next top of the hour.
-      const msSinceHour = (now.getMinutes() * 60 + now.getSeconds()) * 1000 + now.getMilliseconds();
+      // Calculate exactly how many seconds until the next rigidly defined target!
+      // This calculates relative to the start of the day (Midnight).
+      // Example: 30 interval sets rigid slots at *:00 and *:30.
+      const msSinceStartOfDay = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) * 1000 + now.getMilliseconds();
       const intervalMs = intervalMin * 60 * 1000;
       
-      const msLeft = intervalMs - (msSinceHour % intervalMs);
+      const msLeft = intervalMs - (msSinceStartOfDay % intervalMs);
       return Math.floor(msLeft / 1000);
     };
 
