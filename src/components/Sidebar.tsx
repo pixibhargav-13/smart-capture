@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useApp } from "@/lib/context";
+import Modal from "@/components/Modal";
 import {
-  LayoutDashboard, Settings as SettingsIcon, MapPin, Users, BarChart3, X, Camera, LogOut,
+  LayoutDashboard, Settings as SettingsIcon, MapPin, Users, BarChart3, X, Camera, LogOut, Clock as ClockIcon, Bell
 } from "lucide-react";
 
 // 4BitX machine/gear icon inline SVG
@@ -38,6 +41,46 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { settings } = useApp();
+
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [showPopup, setShowPopup] = useState(false);
+
+  useEffect(() => {
+    const intervalMin = settings.captureIntervalMinutes || 60;
+    
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      // Calculate exactly how many seconds until the next rigidly defined clock target!
+      // Example: If interval is 60, it targets the next top of the hour.
+      const msSinceHour = (now.getMinutes() * 60 + now.getSeconds()) * 1000 + now.getMilliseconds();
+      const intervalMs = intervalMin * 60 * 1000;
+      
+      const msLeft = intervalMs - (msSinceHour % intervalMs);
+      return Math.floor(msLeft / 1000);
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          setShowPopup(true);
+          return calculateTimeLeft(); // instantly reset based on clock
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [settings.captureIntervalMinutes]);
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
   return (
     <>
@@ -64,8 +107,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
 
+        {/* Global Clock Interval Timer */}
+        <div className="mx-4 mt-5 mb-1 bg-gray-50 border border-gray-200 rounded-xl p-4 relative overflow-hidden shadow-inner">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Next Capture Window</span>
+            <ClockIcon className="w-3.5 h-3.5 text-primary-500" />
+          </div>
+          <div className="text-3xl font-mono font-bold text-gray-900 tracking-tight">{formatTime(timeLeft)}</div>
+          <p className="text-[10px] text-gray-400 mt-1">Rigid schedule: Every {settings.captureIntervalMinutes}m</p>
+        </div>
+
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -104,6 +157,23 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
       </aside>
+
+      {/* Global Capture Alert Modal */}
+      <Modal isOpen={showPopup} onClose={() => setShowPopup(false)} title="Capture Window Open!">
+        <div className="text-center py-4">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm ring-1 ring-red-50">
+            <Bell className="w-10 h-10 text-red-600 animate-pulse" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Time for hourly captures!</h3>
+          <p className="text-sm text-gray-500 mb-6 px-4">The next tracking window has officially opened. Please capture all active machines now before the window closes.</p>
+          <button 
+            onClick={() => { setShowPopup(false); router.push("/capture"); onClose(); }}
+            className="w-full px-4 py-3.5 bg-red-600 text-white rounded-lg font-bold text-base hover:bg-red-700 transition-colors shadow-sm tracking-wide"
+          >
+            Go to Capture Screen
+          </button>
+        </div>
+      </Modal>
     </>
   );
 }

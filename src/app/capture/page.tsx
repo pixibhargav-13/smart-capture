@@ -3,10 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useApp } from "@/lib/context";
 import { extractCncData } from "@/lib/ocr";
-import Modal from "@/components/Modal";
 import {
   Camera, CheckCircle, Clock, RotateCcw, Upload, Loader2,
-  FileText, Gauge, Zap, Monitor, AlertOctagon, Save, TrendingUp, Bell
+  FileText, Gauge, Zap, Monitor, AlertOctagon, Save, TrendingUp
 } from "lucide-react";
 
 export default function CapturePage() {
@@ -17,9 +16,6 @@ export default function CapturePage() {
   const [ocrResult, setOcrResult] = useState<ReturnType<typeof emptyOcr> | null>(null);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [step, setStep] = useState<"select" | "capture" | "processing" | "review" | "done">("select");
-  const [timeLeft, setTimeLeft] = useState(settings.captureIntervalMinutes * 60);
-  const [timerActive, setTimerActive] = useState(false);
-  const [showTimerAlert, setShowTimerAlert] = useState(false);
   const [capturedAt, setCapturedAt] = useState<Date | null>(null);
   const [saving, setSaving] = useState(false);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -35,33 +31,9 @@ export default function CapturePage() {
     (e) => e.machineId === selectedMachine && new Date(e.timestamp).getTime() > windowStart
   ).length;
 
-  // Countdown timer
-  useEffect(() => {
-    if (!timerActive || timeLeft <= 0) return;
-    const id = window.setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) { 
-          setTimerActive(false); 
-          setShowTimerAlert(true); // show the popup!
-          return 0; 
-        }
-        return t - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [timerActive, timeLeft]);
-
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
-
   const handleSelectMachine = () => {
     if (!selectedMachine) return;
     setStep("capture");
-    setTimeLeft(settings.captureIntervalMinutes * 60);
-    setTimerActive(true);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,7 +48,6 @@ export default function CapturePage() {
 
     setStep("processing");
     setOcrProgress(0);
-    setTimerActive(false);
 
     try {
       const result = await extractCncData(file, (p) => setOcrProgress(p));
@@ -108,9 +79,6 @@ export default function CapturePage() {
         displayReadable: ocrResult?.displayReadable ?? false,
       });
       setStep("done");
-      // Auto-restart the timer for the next hour interval immediately after saving!
-      setTimeLeft(settings.captureIntervalMinutes * 60);
-      setTimerActive(true);
     } finally {
       setSaving(false);
     }
@@ -123,17 +91,10 @@ export default function CapturePage() {
     setOcrProgress(0);
     setCapturedAt(null);
     setStep("select");
-    setTimerActive(false);
-    setTimeLeft(settings.captureIntervalMinutes * 60);
   };
 
   const steps = ["select", "capture", "processing", "review", "done"];
   const stepLabels = ["Machine", "Photo", "AI Analysis", "Review", "Done"];
-
-  const handleTimerAlertAcknowledge = () => {
-    setShowTimerAlert(false);
-    setStep("capture"); // Automatically go to capture photo screen
-  };
 
   return (
     <div>
@@ -200,20 +161,16 @@ export default function CapturePage() {
         {/* Step 2: Capture */}
         {step === "capture" && (
           <div className="space-y-4">
-            {/* Timer */}
+            {/* Header info */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
-                <Clock className="w-5 h-5 text-primary-600" />
-                <span className="text-sm font-medium text-gray-500">Next capture in</span>
+                <Camera className="w-5 h-5 text-primary-600" />
+                <span className="font-bold text-gray-900">Ready for capture</span>
               </div>
-              <p className={`text-5xl font-bold font-mono ${timeLeft === 0 ? "text-red-600 animate-pulse" : "text-gray-900"}`}>
-                {formatTime(timeLeft)}
-              </p>
-              {timeLeft === 0 && (
-                <p className="text-red-600 font-medium mt-2 text-sm">⚠️ Capture is due now!</p>
-              )}
               <p className="text-sm text-gray-500 mt-2">
-                {machine?.name} · <span className="font-medium">{operator?.name ?? "Unassigned"}</span>
+                Machine: <span className="font-semibold text-gray-900">{machine?.name}</span>
+                <br />
+                Operator: <span className="font-semibold text-gray-900">{operator?.name ?? "Unassigned"}</span>
               </p>
             </div>
 
@@ -390,7 +347,7 @@ export default function CapturePage() {
             </button>
 
             <button
-              onClick={() => { setStep("capture"); setTimerActive(true); setTimeLeft(settings.captureIntervalMinutes * 60); }}
+              onClick={() => { setStep("capture"); }}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
             >
               Retake Photo
@@ -423,23 +380,6 @@ export default function CapturePage() {
           </div>
         )}
       </div>
-      {/* Timer Hit Zero Alert Modal */}
-      <Modal isOpen={showTimerAlert} onClose={handleTimerAlertAcknowledge} title="Next Capture Due!">
-        <div className="text-center py-4">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm ring-1 ring-red-50">
-            <Bell className="w-8 h-8 text-red-600 animate-pulse" />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Time for {operator?.name}'s Photo!</h3>
-          <p className="text-sm text-gray-500 mb-6">It has been {settings.captureIntervalMinutes} minutes since the last capture for {machine?.name}.</p>
-          <button 
-            onClick={handleTimerAlertAcknowledge}
-            className="w-full px-4 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors shadow-sm"
-          >
-            Take Photo Now
-          </button>
-        </div>
-      </Modal>
-
     </div>
   );
 }
