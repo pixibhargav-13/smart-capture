@@ -141,7 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [machines, setMachines] = useState<Machine[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [productionEntries, setProductionEntries] = useState<ProductionEntry[]>([]);
-  const [settings, setSettings] = useState<Settings>({ captureIntervalMinutes: 60, companyName: "4BitX Smart Capture" });
+  const [settings, setSettings] = useState<Settings>({ captureIntervalMinutes: 60, companyName: "Smart CNC Capture" });
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {

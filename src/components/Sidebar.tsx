@@ -9,16 +9,36 @@ import {
   LayoutDashboard, Settings as SettingsIcon, MapPin, Users, BarChart3, X, Camera, LogOut, Clock as ClockIcon, Bell
 } from "lucide-react";
 
-// 4BitX machine/gear icon inline SVG
+// CNC machine logo icon
+function CNCLogoIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {/* Machine base */}
+      <rect x="2" y="16" width="20" height="4" rx="1" />
+      {/* Machine body */}
+      <rect x="4" y="8" width="16" height="8" rx="1" />
+      {/* Spindle */}
+      <line x1="12" y1="4" x2="12" y2="8" />
+      <path d="M10 4h4" />
+      {/* Drill bit */}
+      <path d="M12 8v4" />
+      <circle cx="12" cy="13" r="0.5" fill="currentColor" />
+      {/* Control panel dots */}
+      <circle cx="7" cy="11" r="0.7" fill="currentColor" />
+      <circle cx="7" cy="13" r="0.7" fill="currentColor" />
+      {/* Digital readout */}
+      <rect x="15" y="10" width="3" height="2" rx="0.5" />
+    </svg>
+  );
+}
+
+// Machine icon for nav items
 function MachineIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="6" width="20" height="12" rx="2" />
-      <path d="M12 6V2" />
-      <path d="M6 6V4" />
-      <path d="M18 6V4" />
-      <circle cx="8" cy="12" r="2" />
-      <circle cx="16" cy="12" r="2" />
+      <path d="M12 6V2" /><path d="M6 6V4" /><path d="M18 6V4" />
+      <circle cx="8" cy="12" r="2" /><circle cx="16" cy="12" r="2" />
       <path d="M10 12h4" />
     </svg>
   );
@@ -98,10 +118,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-2.5" onClick={onClose}>
-            <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
-              <MachineIcon className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-lg text-gray-900">Smart Capture</span>
+            <img src="/4B_page-0001 1.svg" alt="Smart CNC Capture" className="w-9 h-9 rounded-lg object-contain" />
+            <span className="font-bold text-[15px] text-gray-900">Smart CNC Capture</span>
           </Link>
           <button onClick={onClose} className="lg:hidden p-1 hover:bg-gray-100 rounded">
             <X className="w-5 h-5" />

@@ -1,4 +1,4 @@
-// Central API client for the Smart Capture backend
+// Central API client for the Smart CNC Capture backend
 const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {

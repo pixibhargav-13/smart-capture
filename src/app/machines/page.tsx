@@ -58,8 +58,11 @@ export default function MachinesPage() {
   const handleSubmit = () => {
     if (!formName.trim()) return;
     const data = {
-      name: formName, type: formType, locationId: formLocation,
-      operatorId: formOperator, status: formStatus, lastUpdate: "Just now",
+      name: formName, type: formType,
+      locationId: formLocation || null,
+      operatorId: formOperator || null,
+      status: formStatus,
+      lastUpdate: new Date().toISOString(),
     };
     if (editId) {
       updateMachine(editId, data);

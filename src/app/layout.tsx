@@ -11,8 +11,8 @@ const geistSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "4BitX Smart Capture - CNC ERP",
-  description: "Smart Machine Capture - CNC Production Management System",
+  title: "Smart CNC Capture - CNC ERP",
+  description: "Smart CNC Capture - CNC Production Management System",
 };
 
 export default function RootLayout({

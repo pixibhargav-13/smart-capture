@@ -84,5 +84,5 @@ export const defaultProductionEntries: ProductionEntry[] = [
 
 export const defaultSettings: Settings = {
   captureIntervalMinutes: 60,
-  companyName: "4BitX Smart Capture",
+  companyName: "Smart CNC Capture",
 };
