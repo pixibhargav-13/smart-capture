@@ -59,8 +59,8 @@ export default function MachinesPage() {
     if (!formName.trim()) return;
     const data = {
       name: formName, type: formType,
-      locationId: formLocation || null,
-      operatorId: formOperator || null,
+      locationId: formLocation || "",
+      operatorId: formOperator || "",
       status: formStatus,
       lastUpdate: new Date().toISOString(),
     };

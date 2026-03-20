@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useApp } from "@/lib/context";
@@ -8,29 +9,6 @@ import Modal from "@/components/Modal";
 import {
   LayoutDashboard, Settings as SettingsIcon, MapPin, Users, BarChart3, X, Camera, LogOut, Clock as ClockIcon, Bell
 } from "lucide-react";
-
-// CNC machine logo icon
-function CNCLogoIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      {/* Machine base */}
-      <rect x="2" y="16" width="20" height="4" rx="1" />
-      {/* Machine body */}
-      <rect x="4" y="8" width="16" height="8" rx="1" />
-      {/* Spindle */}
-      <line x1="12" y1="4" x2="12" y2="8" />
-      <path d="M10 4h4" />
-      {/* Drill bit */}
-      <path d="M12 8v4" />
-      <circle cx="12" cy="13" r="0.5" fill="currentColor" />
-      {/* Control panel dots */}
-      <circle cx="7" cy="11" r="0.7" fill="currentColor" />
-      <circle cx="7" cy="13" r="0.7" fill="currentColor" />
-      {/* Digital readout */}
-      <rect x="15" y="10" width="3" height="2" rx="0.5" />
-    </svg>
-  );
-}
 
 // Machine icon for nav items
 function MachineIcon({ className }: { className?: string }) {
@@ -118,7 +96,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-2.5" onClick={onClose}>
-            <img src="/4B_page-0001 1.svg" alt="Smart CNC Capture" className="w-9 h-9 rounded-lg object-contain" />
+            <Image src="/4B_page-0001 1.svg" alt="Smart CNC Capture" width={36} height={36} className="rounded-lg object-contain" />
             <span className="font-bold text-[15px] text-gray-900">Smart CNC Capture</span>
           </Link>
           <button onClick={onClose} className="lg:hidden p-1 hover:bg-gray-100 rounded">

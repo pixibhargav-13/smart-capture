@@ -1,7 +1,7 @@
 {
   "name": "smart-capture-backend",
   "version": "1.0.0",
-  "description": "Backend API for Smart Capture CNC monitoring system",
+  "description": "Backend API for Smart CNC Capture monitoring system",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
