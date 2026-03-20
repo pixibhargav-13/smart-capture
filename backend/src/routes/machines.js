@@ -39,12 +39,23 @@ router.put("/:id", async (req, res, next) => {
   try {
     const old = await Machine.findById(req.params.id);
     if (!old) return res.status(404).json({ error: "Machine not found" });
-    if (req.body.operatorId && String(old.operatorId) !== String(req.body.operatorId)) {
-      if (old.operatorId) {
-        await Employee.findByIdAndUpdate(old.operatorId, { $pull: { assignedMachines: old._id } });
+
+    // Normalize empty strings to null for ObjectId fields
+    if (req.body.operatorId === "" || req.body.operatorId === undefined) req.body.operatorId = null;
+    if (req.body.locationId === "" || req.body.locationId === undefined) req.body.locationId = null;
+
+    const oldOpId = old.operatorId ? String(old.operatorId) : null;
+    const newOpId = req.body.operatorId ? String(req.body.operatorId) : null;
+
+    if (oldOpId !== newOpId) {
+      if (oldOpId) {
+        await Employee.findByIdAndUpdate(oldOpId, { $pull: { assignedMachines: old._id } });
       }
-      await Employee.findByIdAndUpdate(req.body.operatorId, { $addToSet: { assignedMachines: old._id } });
+      if (newOpId) {
+        await Employee.findByIdAndUpdate(newOpId, { $addToSet: { assignedMachines: old._id } });
+      }
     }
+
     const machine = await Machine.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     res.json(machine);
   } catch (err) { next(err); }
