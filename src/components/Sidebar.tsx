@@ -96,7 +96,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-2.5" onClick={onClose}>
-            <Image src="/4B_page-0001 1.svg" alt="Smart CNC Capture" width={36} height={36} className="rounded-lg object-contain" />
+            <Image src="/logo.svg" alt="Smart CNC Capture" width={48} height={48} className="rounded-lg object-contain" />
             <span className="font-bold text-[15px] text-gray-900">Smart CNC Capture</span>
           </Link>
           <button onClick={onClose} className="lg:hidden p-1 hover:bg-gray-100 rounded">
