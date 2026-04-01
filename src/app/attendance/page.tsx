@@ -187,7 +187,7 @@ export default function AttendancePage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-4 hidden sm:flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Attendance</h1>
           <p className="text-gray-500 mt-1">Employee attendance tracking — last 10 days</p>
@@ -198,7 +198,7 @@ export default function AttendancePage() {
       </div>
 
       {/* Today summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="w-4 h-4 text-green-500" />
@@ -282,36 +282,33 @@ export default function AttendancePage() {
                 {/* Header row */}
                 <button
                   onClick={() => setSelected(isOpen ? null : emp.id)}
-                  className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors text-left"
                 >
-                  <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm shrink-0">
                     {emp.avatar}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900">{emp.name}</p>
-                    <p className="text-xs text-gray-400">{emp.role} · {emp.machine}</p>
+                    <p className="font-semibold text-gray-900 text-sm truncate">{emp.name}</p>
+                    <p className="text-xs text-gray-400 truncate">{emp.role}</p>
                   </div>
 
-                  {/* Mini heatmap */}
-                  <div className="hidden sm:block">
+                  {/* Mini heatmap — desktop only */}
+                  <div className="hidden sm:block shrink-0">
                     <HeatmapRow records={emp.records} />
                   </div>
 
                   {/* Stats */}
-                  <div className="flex gap-3 text-xs shrink-0">
+                  <div className="flex gap-2 text-xs shrink-0">
                     <span className="text-green-600 font-bold">{s.present}P</span>
                     <span className="text-red-500 font-bold">{s.absent}A</span>
                     {s.late > 0 && <span className="text-yellow-600 font-bold">{s.late}L</span>}
                   </div>
 
                   {/* Attendance rate */}
-                  <div className="w-20 shrink-0">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400">Rate</span>
-                      <span className={`font-bold ${s.pct >= 90 ? "text-green-600" : s.pct >= 75 ? "text-yellow-600" : "text-red-500"}`}>
-                        {s.pct}%
-                      </span>
-                    </div>
+                  <div className="w-16 sm:w-20 shrink-0">
+                    <p className={`text-xs font-bold text-right mb-1 ${s.pct >= 90 ? "text-green-600" : s.pct >= 75 ? "text-yellow-600" : "text-red-500"}`}>
+                      {s.pct}%
+                    </p>
                     <HBar value={s.present} max={s.total} color={s.pct >= 90 ? "#22c55e" : s.pct >= 75 ? "#eab308" : "#ef4444"} />
                   </div>
 
@@ -340,28 +337,30 @@ export default function AttendancePage() {
                       </div>
                     </div>
 
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-xs text-gray-400 border-b border-gray-200">
-                          <th className="text-left py-2 font-medium">Date</th>
-                          <th className="text-left py-2 font-medium">Shift</th>
-                          <th className="text-left py-2 font-medium">Check In</th>
-                          <th className="text-left py-2 font-medium">Check Out</th>
-                          <th className="text-left py-2 font-medium">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {emp.records.map((rec, i) => (
-                          <tr key={i} className={`border-b border-gray-100 ${!rec.present ? "bg-red-50/40" : rec.late ? "bg-yellow-50/40" : ""}`}>
-                            <td className="py-2 text-gray-700 font-medium">{rec.date}</td>
-                            <td className="py-2 text-gray-500">{rec.shift}</td>
-                            <td className="py-2 font-mono text-gray-700">{rec.checkIn ?? "—"}</td>
-                            <td className="py-2 font-mono text-gray-700">{rec.checkOut ?? "—"}</td>
-                            <td className="py-2">{statusBadge(rec)}</td>
+                    <div className="overflow-x-auto -mx-4 px-4">
+                      <table className="w-full text-sm min-w-[360px]">
+                        <thead>
+                          <tr className="text-xs text-gray-400 border-b border-gray-200">
+                            <th className="text-left py-2 font-medium">Date</th>
+                            <th className="text-left py-2 font-medium">Shift</th>
+                            <th className="text-left py-2 font-medium">In</th>
+                            <th className="text-left py-2 font-medium">Out</th>
+                            <th className="text-left py-2 font-medium">Status</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {emp.records.map((rec, i) => (
+                            <tr key={i} className={`border-b border-gray-100 ${!rec.present ? "bg-red-50/40" : rec.late ? "bg-yellow-50/40" : ""}`}>
+                              <td className="py-2 text-gray-700 font-medium text-xs">{rec.date}</td>
+                              <td className="py-2 text-gray-500 text-xs">{rec.shift}</td>
+                              <td className="py-2 font-mono text-gray-700 text-xs">{rec.checkIn ?? "—"}</td>
+                              <td className="py-2 font-mono text-gray-700 text-xs">{rec.checkOut ?? "—"}</td>
+                              <td className="py-2">{statusBadge(rec)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>
@@ -379,10 +378,10 @@ export default function AttendancePage() {
 
       {/* Legend */}
       <div className="mt-4 flex flex-wrap gap-3 text-xs text-gray-400">
-        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-green-400 inline-block" /> Present on time</span>
-        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-yellow-300 inline-block" /> Late or left early</span>
+        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-green-400 inline-block" /> Present</span>
+        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-yellow-300 inline-block" /> Late / Left early</span>
         <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-red-300 inline-block" /> Absent</span>
-        <span className="ml-auto italic">* Static demo data — connect HR API for live records</span>
+        <span className="w-full sm:w-auto sm:ml-auto italic">* Static demo data</span>
       </div>
     </div>
   );

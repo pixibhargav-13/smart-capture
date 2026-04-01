@@ -55,13 +55,13 @@ export default function ProductionPage() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-4 hidden sm:block">
         <h1 className="text-2xl font-bold text-gray-900">Production Live View</h1>
         <p className="text-gray-500 mt-1">Real-time CNC data by Employee and Machine</p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-500 font-medium">Total Captures</span>

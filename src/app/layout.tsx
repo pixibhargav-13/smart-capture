@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AppProvider } from "@/lib/context";
@@ -13,6 +13,12 @@ const geistSans = localFont({
 export const metadata: Metadata = {
   title: "Smart CNC Capture - CNC ERP",
   description: "Smart CNC Capture - CNC Production Management System",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

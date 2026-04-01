@@ -223,7 +223,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-4 hidden sm:flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-500 mt-1">
@@ -236,35 +236,41 @@ export default function Dashboard() {
           </p>
         </div>
       </div>
+      {/* Date line on mobile only */}
+      <p className="text-xs text-gray-400 mb-3 sm:hidden">
+        {new Date().toLocaleDateString("en", { weekday: "long", month: "short", day: "numeric" })} · Every {intervalMin}m · {windowMin}m window
+      </p>
 
       {/* Global window status banner */}
       {windowState.open ? (
-        <div className="mb-5 bg-red-50 border-2 border-red-400 rounded-xl p-4 flex items-center gap-4">
-          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-6 h-6 text-red-600 animate-pulse" />
-          </div>
-          <div className="flex-1">
-            <p className="font-bold text-red-700 text-lg">Capture Window is OPEN!</p>
-            <p className="text-sm text-red-500">
-              {windowMin}-minute window — closes in <span className="font-mono font-bold">{fmt(windowState.secs)}</span>.
-              Uncaptured machines will be marked <strong>Missed</strong>.
-            </p>
+        <div className="mb-5 bg-red-50 border-2 border-red-400 rounded-xl p-4">
+          <div className="flex items-center gap-3 mb-3 sm:mb-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 animate-pulse" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-red-700 text-base sm:text-lg">Capture Window is OPEN!</p>
+              <p className="text-xs sm:text-sm text-red-500">
+                {windowMin}-min window — closes in <span className="font-mono font-bold">{fmt(windowState.secs)}</span>.
+                Uncaptured machines → <strong>Missed</strong>.
+              </p>
+            </div>
           </div>
           <Link
             href="/capture"
-            className="shrink-0 px-5 py-2.5 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 transition-colors"
+            className="mt-3 sm:mt-0 sm:ml-4 block sm:inline-block text-center px-5 py-2.5 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 transition-colors sm:shrink-0"
           >
             Capture Now
           </Link>
         </div>
       ) : (
-        <div className="mb-5 bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center gap-4">
-          <div className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5 text-gray-400" />
+        <div className="mb-5 bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center gap-3">
+          <div className="w-9 h-9 bg-white border border-gray-200 rounded-full flex items-center justify-center shrink-0">
+            <Clock className="w-4 h-4 text-gray-400" />
           </div>
-          <div className="flex-1">
-            <p className="font-semibold text-gray-700">Next slot opens in <span className="font-mono text-primary-600">{fmt(windowState.secs)}</span></p>
-            <p className="text-xs text-gray-400">Window will stay open for {windowMin} minutes. Capture all machines within that window.</p>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-700 text-sm">Next slot opens in <span className="font-mono text-primary-600">{fmt(windowState.secs)}</span></p>
+            <p className="text-xs text-gray-400">Window stays open {windowMin} min — capture all machines.</p>
           </div>
         </div>
       )}
@@ -294,17 +300,24 @@ export default function Dashboard() {
       </div>
 
       {/* Per-machine slot grid */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="font-bold text-gray-900 text-lg">Today&apos;s Capture Slots</h2>
-          <div className="flex items-center gap-3 text-xs text-gray-400">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 mb-6">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h2 className="font-bold text-gray-900 text-base sm:text-lg">Today&apos;s Slots</h2>
+          <div className="hidden sm:flex items-center gap-3 text-xs text-gray-400 flex-shrink-0">
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400 inline-block" /> Captured</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-300 inline-block" /> Missed</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-300 inline-block" /> Open</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-200 inline-block" /> Upcoming</span>
           </div>
+          {/* Mobile legend — compact */}
+          <div className="flex sm:hidden items-center gap-1.5 text-[10px] text-gray-400 flex-shrink-0">
+            <span className="w-2.5 h-2.5 rounded bg-green-400 inline-block" />
+            <span className="w-2.5 h-2.5 rounded bg-red-300 inline-block" />
+            <span className="w-2.5 h-2.5 rounded bg-amber-300 inline-block" />
+            <span className="w-2.5 h-2.5 rounded bg-gray-200 inline-block" />
+          </div>
         </div>
-        <p className="text-xs text-gray-400 mb-4">Each box = one {intervalMin}-min slot. Window open for first {windowMin} min.</p>
+        <p className="text-xs text-gray-400 mb-4">Each box = one {intervalMin}-min slot. Window = first {windowMin} min.</p>
 
         {machines.length === 0 ? (
           <p className="text-gray-400 text-sm py-8 text-center">No machines configured yet.</p>
@@ -317,35 +330,35 @@ export default function Dashboard() {
               return (
                 <div key={machine.id} className="border border-gray-100 rounded-xl p-4">
                   {/* Machine header */}
-                  <div className="flex items-start justify-between mb-3 flex-wrap gap-2">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                  <div className="flex items-start justify-between mb-3 gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                         machine.status === "active" ? "bg-green-50" : machine.status === "maintenance" ? "bg-orange-50" : "bg-gray-100"
                       }`}>
                         <MachineIcon className={`w-4 h-4 ${
                           machine.status === "active" ? "text-green-600" : machine.status === "maintenance" ? "text-orange-500" : "text-gray-400"
                         }`} />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-gray-900">{machine.name}</p>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="font-bold text-gray-900 text-sm">{machine.name}</p>
                           <span className="text-xs text-gray-400">{machine.type}</span>
                         </div>
-                        <p className="text-xs text-gray-500">{operator?.name ?? "Unassigned"}</p>
+                        <p className="text-xs text-gray-500 truncate">{operator?.name ?? "Unassigned"}</p>
                       </div>
                     </div>
 
-                    {/* Summary badges */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-bold">
-                        {summary.captured} captured
+                    {/* Summary badges — compact on mobile */}
+                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                      <span className="px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-bold">
+                        ✓{summary.captured}
                       </span>
                       {summary.missed > 0 && (
-                        <span className="px-2 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold">
-                          {summary.missed} missed
+                        <span className="px-1.5 py-0.5 bg-red-50 text-red-600 rounded text-xs font-bold">
+                          ✗{summary.missed}
                         </span>
                       )}
-                      <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${
                         summary.pct >= 90 ? "bg-green-100 text-green-700" :
                         summary.pct >= 70 ? "bg-yellow-100 text-yellow-700" :
                         "bg-red-100 text-red-600"
@@ -353,8 +366,8 @@ export default function Dashboard() {
                         {summary.pct}%
                       </span>
                       {pcsHr != null && (
-                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold">
-                          {pcsHr} pcs/hr
+                        <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-bold">
+                          {pcsHr}/h
                         </span>
                       )}
                     </div>
@@ -426,38 +439,40 @@ export default function Dashboard() {
       </div>
 
       {/* Trend Chart */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <h2 className="font-bold text-gray-900 text-lg flex-1">Production Trend</h2>
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 mb-6">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 mb-4">
+          <h2 className="font-bold text-gray-900 text-base sm:text-lg sm:flex-1">Production Trend</h2>
 
-          {/* Type toggle */}
-          <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
-            <button
-              onClick={() => { setTrendType("machine"); setTrendId(""); }}
-              className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${trendType === "machine" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
-            >
-              By Machine
-            </button>
-            <button
-              onClick={() => { setTrendType("employee"); setTrendId(""); }}
-              className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${trendType === "employee" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
-            >
-              By Employee
-            </button>
-          </div>
+          <div className="flex items-center gap-2">
+            {/* Type toggle */}
+            <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
+              <button
+                onClick={() => { setTrendType("machine"); setTrendId(""); }}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${trendType === "machine" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
+              >
+                Machine
+              </button>
+              <button
+                onClick={() => { setTrendType("employee"); setTrendId(""); }}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${trendType === "employee" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
+              >
+                Employee
+              </button>
+            </div>
 
-          {/* Entity selector */}
-          <div className="relative">
-            <select
-              value={activeTrendId}
-              onChange={(e) => setTrendId(e.target.value)}
-              className="appearance-none bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-8 py-1.5 text-sm font-medium text-gray-700 focus:outline-none cursor-pointer"
-            >
-              {trendOptions.map((o) => (
-                <option key={o.id} value={o.id}>{o.label}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            {/* Entity selector */}
+            <div className="relative flex-1 min-w-0">
+              <select
+                value={activeTrendId}
+                onChange={(e) => setTrendId(e.target.value)}
+                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-7 py-1.5 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none cursor-pointer truncate"
+              >
+                {trendOptions.map((o) => (
+                  <option key={o.id} value={o.id}>{o.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+            </div>
           </div>
         </div>
 
@@ -488,8 +503,8 @@ export default function Dashboard() {
         })()}
       </div>
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Quick actions — hidden on mobile (bottom nav covers these) */}
+      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link href="/capture" className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary-200 hover:shadow-sm transition-all flex items-center gap-3">
           <div className="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
             <Camera className="w-5 h-5 text-primary-600" />

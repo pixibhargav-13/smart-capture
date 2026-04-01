@@ -185,13 +185,13 @@ export default function ChartsPage() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-4 hidden sm:block">
         <h1 className="text-2xl font-bold text-gray-900">Production Charts</h1>
         <p className="text-gray-500 mt-1">pcs/hour performance by machine and employee</p>
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500 font-medium mb-1">Total Parts</p>
           <p className="text-2xl font-bold text-gray-900">{totalParts.toLocaleString()}</p>
@@ -215,36 +215,36 @@ export default function ChartsPage() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
+      <div className="flex items-center justify-between gap-3 mb-5">
         {/* Tab */}
         <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
           <button
             onClick={() => setTab("machine")}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === "machine" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+            className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${tab === "machine" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
           >
-            By Machine
+            Machine
           </button>
           <button
             onClick={() => setTab("employee")}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === "employee" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+            className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${tab === "employee" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
           >
-            By Employee
+            Employee
           </button>
         </div>
 
         {/* Range selector */}
-        <div className="relative ml-auto">
+        <div className="relative">
           <select
             value={range}
             onChange={(e) => setRange(e.target.value as Range)}
-            className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-8 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+            className="appearance-none bg-white border border-gray-200 rounded-lg pl-2.5 pr-7 py-1.5 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
           >
-            <option value="8h">Last 8 hours</option>
-            <option value="24h">Last 24 hours</option>
-            <option value="7d">Last 7 days</option>
+            <option value="8h">8 hours</option>
+            <option value="24h">24 hours</option>
+            <option value="7d">7 days</option>
             <option value="all">All time</option>
           </select>
-          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
         </div>
       </div>
 

@@ -177,7 +177,7 @@ export default function CapturePage() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-4 hidden sm:block">
         <h1 className="text-2xl font-bold text-gray-900">Capture</h1>
         <p className="text-gray-500 mt-1">Take a photo — AI reads the CNC display and saves automatically</p>
       </div>
