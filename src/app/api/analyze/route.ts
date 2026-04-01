@@ -13,34 +13,67 @@ The photos may be:
 - Have screen glare or reflections
 - Show the full machine panel (you need to focus on the digital display)
 
-Extract these fields (return null if not visible/readable):
-- parts_count: The production/parts counter (number of pieces produced)
-- program_number: The CNC program number (usually starts with O followed by digits)
-- cycle_time: The cycle time shown on display
-- axis_positions: Array of {axis, value} for ALL visible axis positions (e.g., X, Y, Z, C, B, U, V, or literally any other axis name shown on the display). Do not restrict to just X, Y, Z.
-- spindle_speed: Spindle RPM if visible
-- feed_rate: Feed rate if visible
-- machine_mode: Operating mode (AUTO, MDI, JOG, etc.)
-- any_warnings: Any error or warning messages visible on screen
+Different CNC controller brands (Siemens, Fanuc, Mitsubishi, HaOre/HCNC, 990TDc, etc.) show data differently. Understand the context.
+
+Extract ALL of these fields (return null if not visible/readable):
+
+PRODUCTION COUNTERS:
+- parts_count: The parts/workpieces produced counter. Look for: "PartNo", "Workpieces actual", "PartCnt", "Parts counter", "ACT PARTS", "TOTAL PARTS". This is the cumulative count.
+- part_goal: Target/setpoint parts. Look for: "PartGoal", "Workpieces, setpoint", "TARGET", "GOAL". Return as number.
+
+TIMING:
+- cycle_time_seconds: Time per part in SECONDS (integer). Look for: "PartTime" (e.g. "0:55" = 55s, "1:23" = 83s), "CycTime" (e.g. 59.9 = 60s), "Cycle time". Convert to total seconds.
+- run_time: Total machine runtime string. Look for: "RunTime", "Operating time", "TOTAL TIME". Return as string e.g. "5280:33:24".
+- program_time: Current program elapsed time. Return as string.
+- program_remainder: Estimated remaining time. Look for "Prog. remainder". Return as string.
+- program_progress_percent: Program completion %. Return as number 0-100.
+
+PROGRAM & TOOL:
+- program_number: CNC program number/name. Look for "Program", "O0093", "NC/MPF/...", program filename.
+- tool_number: Active tool. Look for "T0101", "T:", "VCGT FINISH", tool designation.
+- machine_mode: Operating mode. Look for "AUTO", "MDI", "JOG", "MEM", "AutoCon Run", "AutoCon Stop".
+
+MOTION:
+- axis_positions: Array of {axis, value} for ALL work coordinate axis positions (X, Z, Y, A, B, C, etc. in the main large position display area).
+- machine_coordinates: Array of {axis, value} for machine/absolute coordinates. Look for "MachCoor", "Machine Coor", "Abs.Coor" section. Different from work coordinates.
+- dist_to_go: Array of {axis, value} for remaining distance. Look for "Dist-to-go".
+
+SPINDLE & FEED:
+- spindle_speed: Actual spindle RPM. Look for "S1", "SRpm", "Actual RPM", "SACT".
+- spindle_speed_set: Commanded spindle speed (setpoint).
+- feed_rate: Actual feed rate. Look for "F", "TrueFeed", "FACT".
+
+ALARMS:
+- any_warnings: Any alarm/error/warning text visible. "No Alarm" means null.
 
 IMPORTANT:
-- If you cannot read a value clearly, return null for that field rather than guessing
-- Be precise with numbers — production data accuracy is critical
+- parts_count is the most critical field — search carefully for any counter showing produced parts
+- cycle_time_seconds must be a number in seconds, not a string — convert "0:55" → 55, "1:23" → 83, "59.9" → 60
+- If you cannot read a value clearly, return null rather than guessing
 - Look for the DIGITAL DISPLAY SCREEN, not physical labels on the machine body
 
 Respond ONLY with valid JSON, no markdown, no explanation.`;
 
-const USER_PROMPT = `Analyze this CNC machine display photo. Extract all production data visible on the screen.
+const USER_PROMPT = `Analyze this CNC machine display photo. Extract ALL production data visible on the screen.
 
 Return JSON in this exact format:
 {
   "parts_count": <number or null>,
+  "part_goal": <number or null>,
+  "cycle_time_seconds": <number in seconds or null>,
+  "run_time": <string or null>,
+  "program_time": <string or null>,
+  "program_remainder": <string or null>,
+  "program_progress_percent": <number 0-100 or null>,
   "program_number": <string or null>,
-  "cycle_time": <string or null>,
-  "axis_positions": [{"axis": "X", "value": "469.940"}, ...],
-  "spindle_speed": <string or null>,
-  "feed_rate": <string or null>,
+  "tool_number": <string or null>,
   "machine_mode": <string or null>,
+  "axis_positions": [{"axis": "X", "value": "469.940"}, ...],
+  "machine_coordinates": [{"axis": "X", "value": "-26.100"}, ...],
+  "dist_to_go": [{"axis": "X", "value": "121.002"}, ...],
+  "spindle_speed": <string or null>,
+  "spindle_speed_set": <string or null>,
+  "feed_rate": <string or null>,
   "any_warnings": <string or null>,
   "display_readable": <boolean>,
   "confidence_notes": <string explaining what you could/couldn't read>
@@ -121,6 +154,18 @@ export async function POST(request: NextRequest) {
         error: "Failed to parse structured data",
         parts_count: null,
       });
+    }
+
+    // Normalize cycle_time_seconds — accept legacy "cycle_time" string as fallback
+    if (parsed.cycle_time_seconds == null && parsed.cycle_time) {
+      const parts = String(parsed.cycle_time).split(":");
+      if (parts.length === 2) {
+        const secs = parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+        if (!isNaN(secs)) parsed.cycle_time_seconds = Math.round(secs);
+      } else if (parts.length === 1) {
+        const v = parseFloat(parts[0]);
+        if (!isNaN(v)) parsed.cycle_time_seconds = Math.round(v);
+      }
     }
 
     return NextResponse.json(parsed);

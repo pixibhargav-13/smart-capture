@@ -32,20 +32,34 @@ export interface ProductionEntry {
   machineId: string;
   machineName: string;
   operatorName: string;
-  timestamp: string;      // display time (timeAgo)
-  capturedAt: string;    // ISO string of actual photo capture time
+  timestamp: string;
+  capturedAt: string;
   partsCount: number | null;
-  captureImage?: string;
-  ocrData?: string;      // full JSON of AI result
-  axisPositions: { axis: string; value: string }[];
-  programNumber?: string | null;
+  partGoal: number | null;
+  cycleTimeSeconds: number | null;
   cycleTime?: string | null;
+  runTime?: string | null;
+  programTime?: string | null;
+  programRemainder?: string | null;
+  programProgressPercent?: number | null;
+  captureImage?: string;
+  ocrData?: string;
+  axisPositions: { axis: string; value: string }[];
+  machineCoordinates: { axis: string; value: string }[];
+  distToGo: { axis: string; value: string }[];
+  programNumber?: string | null;
+  toolNumber?: string | null;
+  spindleSpeed?: string | null;
+  spindleSpeedSet?: string | null;
+  feedRate?: string | null;
+  machineMode?: string | null;
   warnings?: string | null;
   displayReadable: boolean;
 }
 
 export interface Settings {
   captureIntervalMinutes: number;
+  captureWindowMinutes: number;   // how long the capture window stays open each slot
   companyName: string;
 }
 
@@ -99,11 +113,24 @@ function normalizeEntry(e: any): ProductionEntry {
     timestamp: e.capturedAt ? timeAgo(e.capturedAt) : (e.createdAt ? timeAgo(e.createdAt) : "Just now"),
     capturedAt: e.capturedAt ?? e.createdAt ?? new Date().toISOString(),
     partsCount: e.partsCount ?? null,
+    partGoal: e.partGoal ?? null,
+    cycleTimeSeconds: e.cycleTimeSeconds ?? null,
+    cycleTime: e.cycleTime ?? null,
+    runTime: e.runTime ?? null,
+    programTime: e.programTime ?? null,
+    programRemainder: e.programRemainder ?? null,
+    programProgressPercent: e.programProgressPercent ?? null,
     captureImage: e.captureImage ?? undefined,
     ocrData: e.ocrData ?? undefined,
     axisPositions: e.axisPositions ?? [],
+    machineCoordinates: e.machineCoordinates ?? [],
+    distToGo: e.distToGo ?? [],
     programNumber: e.programNumber ?? null,
-    cycleTime: e.cycleTime ?? null,
+    toolNumber: e.toolNumber ?? null,
+    spindleSpeed: e.spindleSpeed ?? null,
+    spindleSpeedSet: e.spindleSpeedSet ?? null,
+    feedRate: e.feedRate ?? null,
+    machineMode: e.machineMode ?? null,
     warnings: e.warnings ?? null,
     displayReadable: e.displayReadable ?? false,
   };
@@ -141,7 +168,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [machines, setMachines] = useState<Machine[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [productionEntries, setProductionEntries] = useState<ProductionEntry[]>([]);
-  const [settings, setSettings] = useState<Settings>({ captureIntervalMinutes: 60, companyName: "Smart CNC Capture" });
+  const [settings, setSettings] = useState<Settings>({ captureIntervalMinutes: 60, captureWindowMinutes: 15, companyName: "Smart CNC Capture" });
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -157,7 +184,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setMachines(machs.map(normalizeMachine));
       setLocations(locs.map(normalizeLocation));
       setProductionEntries(prod.entries.map(normalizeEntry));
-      setSettings({ captureIntervalMinutes: sett.captureIntervalMinutes, companyName: sett.companyName });
+      setSettings({ captureIntervalMinutes: sett.captureIntervalMinutes, captureWindowMinutes: sett.captureWindowMinutes ?? 15, companyName: sett.companyName });
     } catch (err) {
       console.error("Failed to load data from backend:", err);
     } finally {
@@ -217,12 +244,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       operatorName: entry.operatorName,
       capturedAt: entry.capturedAt,
       partsCount: entry.partsCount ?? ocrParsed.partsCount ?? null,
+      partGoal: ocrParsed.partGoal ?? null,
+      cycleTimeSeconds: ocrParsed.cycleTimeSeconds ?? null,
+      cycleTime: ocrParsed.cycleTime ?? null,
+      runTime: ocrParsed.runTime ?? null,
+      programTime: ocrParsed.programTime ?? null,
+      programRemainder: ocrParsed.programRemainder ?? null,
+      programProgressPercent: ocrParsed.programProgressPercent ?? null,
       captureImage: entry.captureImage ?? null,
       ocrData: entry.ocrData ?? null,
-      programNumber: ocrParsed.programNumber ?? null,
-      cycleTime: ocrParsed.cycleTime ?? null,
       axisPositions: ocrParsed.axisPositions ?? [],
+      machineCoordinates: ocrParsed.machineCoordinates ?? [],
+      distToGo: ocrParsed.distToGo ?? [],
+      programNumber: ocrParsed.programNumber ?? null,
+      toolNumber: ocrParsed.toolNumber ?? null,
       spindleSpeed: ocrParsed.spindleSpeed ?? null,
+      spindleSpeedSet: ocrParsed.spindleSpeedSet ?? null,
       feedRate: ocrParsed.feedRate ?? null,
       machineMode: ocrParsed.machineMode ?? null,
       warnings: ocrParsed.warnings ?? null,
@@ -233,7 +270,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateSettings = async (s: Partial<Settings>) => {
     const updated = await settingsApi.update(s);
-    setSettings({ captureIntervalMinutes: updated.captureIntervalMinutes, companyName: updated.companyName });
+    setSettings({ captureIntervalMinutes: updated.captureIntervalMinutes, captureWindowMinutes: updated.captureWindowMinutes ?? 15, companyName: updated.companyName });
   };
 
   const getEmployeeById = (id: string) => employees.find((e) => e.id === id);

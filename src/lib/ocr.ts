@@ -1,16 +1,31 @@
 export interface OcrResult {
   rawText: string;
+  // Production counters
   partsCount: number | null;
-  cycleTime: string | null;
+  partGoal: number | null;
+  // Timing
+  cycleTimeSeconds: number | null;   // seconds per part — key for pcs/hour
+  cycleTime: string | null;          // raw string from display (legacy / display use)
+  runTime: string | null;
+  programTime: string | null;
+  programRemainder: string | null;
+  programProgressPercent: number | null;
+  // Program & tool
   programNumber: string | null;
-  axisPositions: { axis: string; value: string }[];
-  confidence: number;
-  // Extended fields from agentic AI
-  spindleSpeed: string | null;
-  feedRate: string | null;
+  toolNumber: string | null;
   machineMode: string | null;
+  // Motion
+  axisPositions: { axis: string; value: string }[];
+  machineCoordinates: { axis: string; value: string }[];
+  distToGo: { axis: string; value: string }[];
+  // Spindle & feed
+  spindleSpeed: string | null;
+  spindleSpeedSet: string | null;
+  feedRate: string | null;
+  // Status
   warnings: string | null;
   displayReadable: boolean;
+  confidence: number;
   confidenceNotes: string;
 }
 
@@ -60,16 +75,32 @@ export async function extractCncData(
 
   return {
     rawText: data.confidence_notes || data.raw || "",
+    // Production counters
     partsCount: data.parts_count ?? null,
-    cycleTime: data.cycle_time ?? null,
+    partGoal: data.part_goal ?? null,
+    // Timing
+    cycleTimeSeconds: data.cycle_time_seconds ?? null,
+    cycleTime: data.cycle_time_seconds != null ? `${data.cycle_time_seconds}s` : (data.cycle_time ?? null),
+    runTime: data.run_time ?? null,
+    programTime: data.program_time ?? null,
+    programRemainder: data.program_remainder ?? null,
+    programProgressPercent: data.program_progress_percent ?? null,
+    // Program & tool
     programNumber: data.program_number ?? null,
-    axisPositions: data.axis_positions ?? [],
-    confidence: data.display_readable ? 95 : 40,
-    spindleSpeed: data.spindle_speed ?? null,
-    feedRate: data.feed_rate ?? null,
+    toolNumber: data.tool_number ?? null,
     machineMode: data.machine_mode ?? null,
+    // Motion
+    axisPositions: data.axis_positions ?? [],
+    machineCoordinates: data.machine_coordinates ?? [],
+    distToGo: data.dist_to_go ?? [],
+    // Spindle & feed
+    spindleSpeed: data.spindle_speed ?? null,
+    spindleSpeedSet: data.spindle_speed_set ?? null,
+    feedRate: data.feed_rate ?? null,
+    // Status
     warnings: data.any_warnings ?? null,
     displayReadable: data.display_readable ?? false,
+    confidence: data.display_readable ? 95 : 40,
     confidenceNotes: data.confidence_notes ?? "",
   };
 }

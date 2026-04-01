@@ -7,13 +7,16 @@ import { Save, Clock, Building2 } from "lucide-react";
 export default function SettingsPage() {
   const { settings, updateSettings } = useApp();
   const [interval, setInterval] = useState(settings.captureIntervalMinutes.toString());
+  const [windowMins, setWindowMins] = useState((settings.captureWindowMinutes ?? 15).toString());
   const [companyName, setCompanyName] = useState(settings.companyName);
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
     const mins = parseInt(interval);
+    const win = parseInt(windowMins);
     if (isNaN(mins) || mins < 1) return;
-    updateSettings({ captureIntervalMinutes: mins, companyName });
+    if (isNaN(win) || win < 1) return;
+    updateSettings({ captureIntervalMinutes: mins, captureWindowMinutes: win, companyName });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -90,10 +93,53 @@ export default function SettingsPage() {
             ))}
           </div>
 
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">
-              <strong>How it works:</strong> Every <strong>{interval} minutes</strong>, the assigned employee will be prompted to capture a photo of the CNC machine display. The system will extract data via OCR and compare it with the manually entered values. If both match, the entry is verified automatically.
-            </p>
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+            Slots fire at: <strong>12 AM, {parseInt(interval) >= 60 ? "1 AM, 2 AM..." : `every ${interval} min`}</strong> (aligned to midnight)
+          </div>
+        </div>
+
+        {/* Capture Window Duration */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
+              <Clock className="w-5 h-5 text-orange-500" />
+            </div>
+            <div>
+              <h2 className="font-bold text-gray-900">Capture Window Duration</h2>
+              <p className="text-sm text-gray-500">How long the window stays open to capture after each slot starts. After this time, the slot is marked <strong>Missed</strong>.</p>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Window duration (minutes)</label>
+            <input
+              type="number"
+              min="1"
+              max={parseInt(interval) - 1 || 59}
+              value={windowMins}
+              onChange={(e) => setWindowMins(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[5, 10, 15, 20, 30].map((p) => (
+              <button
+                key={p}
+                onClick={() => setWindowMins(p.toString())}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                  parseInt(windowMins) === p
+                    ? "bg-orange-50 border-orange-200 text-orange-700"
+                    : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {p} min
+              </button>
+            ))}
+          </div>
+
+          <div className="p-3 bg-orange-50 rounded-lg text-sm text-orange-800">
+            <strong>Example:</strong> Slot opens at <strong>1:00 PM</strong> → window open until <strong>1:{String(parseInt(windowMins) || 15).padStart(2,"0")} PM</strong>. No capture by then → slot marked <span className="font-bold text-red-600">Missed</span>.
           </div>
         </div>
 

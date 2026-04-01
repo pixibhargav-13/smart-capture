@@ -45,17 +45,27 @@ export interface ProductionEntry {
   machineId: string;
   machineName: string;
   operatorName: string;
-  capturedAt: string;          // when the photo was taken
-  partsCount: number | null;   // AI-extracted parts count
-  programNumber?: string | null;
+  capturedAt: string;
+  partsCount: number | null;
+  partGoal?: number | null;
+  cycleTimeSeconds?: number | null;
   cycleTime?: string | null;
+  runTime?: string | null;
+  programTime?: string | null;
+  programRemainder?: string | null;
+  programProgressPercent?: number | null;
+  programNumber?: string | null;
+  toolNumber?: string | null;
   axisPositions: { axis: string; value: string }[];
+  machineCoordinates?: { axis: string; value: string }[];
+  distToGo?: { axis: string; value: string }[];
   spindleSpeed?: string | null;
+  spindleSpeedSet?: string | null;
   feedRate?: string | null;
   machineMode?: string | null;
   warnings?: string | null;
   displayReadable: boolean;
-  ocrData?: string | null;     // full OCR JSON string (audit)
+  ocrData?: string | null;
   captureImage?: string | null;
   createdAt: string;
 }
@@ -63,6 +73,7 @@ export interface ProductionEntry {
 export interface Settings {
   _id: string;
   captureIntervalMinutes: number;
+  captureWindowMinutes: number;
   companyName: string;
 }
 
