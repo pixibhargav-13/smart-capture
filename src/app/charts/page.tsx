@@ -113,13 +113,11 @@ export default function ChartsPage() {
   const [tab, setTab] = useState<"machine" | "employee">("machine");
   const [range, setRange] = useState<Range>("24h");
 
-  const rangeHours: Record<Range, number> = { "8h": 8, "24h": 24, "7d": 168, "all": 99999 };
-
   // Filter entries by range
-  const filtered = useMemo(() =>
-    productionEntries.filter((e) => withinHours(e.capturedAt, rangeHours[range])),
-    [productionEntries, range, rangeHours]
-  );
+  const filtered = useMemo(() => {
+    const rangeHours: Record<Range, number> = { "8h": 8, "24h": 24, "7d": 168, "all": 99999 };
+    return productionEntries.filter((e) => withinHours(e.capturedAt, rangeHours[range]));
+  }, [productionEntries, range]);
 
   // ── BY MACHINE ──────────────────────────────────────────────────────────
   const machineData = useMemo(() => {

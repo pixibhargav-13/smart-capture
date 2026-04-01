@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, CheckCircle, XCircle, Clock, TrendingUp, AlertCircle, ChevronDown } from "lucide-react";
+import { CheckCircle, XCircle, Clock, TrendingUp, AlertCircle, ChevronDown } from "lucide-react";
 
 // ── Static demo data ────────────────────────────────────────────────────────
 // In a real system this would come from an HR/attendance API
@@ -175,8 +175,6 @@ export default function AttendancePage() {
   const lateToday = todayRecords.filter((x) => x.rec?.late).length;
   const absentToday = todayRecords.filter((x) => !x.rec?.present).length;
   const overall = stats(allRecords);
-
-  const selectedEmp = selected ? DEMO_EMPLOYEES.find((e) => e.id === selected) : null;
 
   // Weekly attendance bar chart data
   const weeklyData = Array.from({ length: 7 }, (_, i) => {
