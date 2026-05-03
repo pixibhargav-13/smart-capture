@@ -8,9 +8,13 @@ import { useApp } from "@/lib/context";
 import Modal from "@/components/Modal";
 import {
   LayoutDashboard, Settings as SettingsIcon, MapPin, Users, BarChart3, X, Camera, LogOut, Clock as ClockIcon, Bell,
-  LineChart, CalendarCheck, AlertTriangle
+  LineChart, CalendarCheck, AlertTriangle, Play, RotateCcw, Square
 } from "lucide-react";
-import { isWindowOpen, secondsInWindow, secondsUntilNextSlot } from "@/lib/slots";
+import {
+  isWindowOpen, secondsInWindow, secondsUntilNextSlot,
+  isDemoMode, enableDemoMode, disableDemoMode, resetDemoWindow,
+  DEMO_INTERVAL, DEMO_WINDOW,
+} from "@/lib/slots";
 
 // Machine icon for nav items
 function MachineIcon({ className }: { className?: string }) {
@@ -51,13 +55,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [timerMode, setTimerMode] = useState<"open" | "waiting">("waiting");
   const [timeLeft, setTimeLeft] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
+  const [demoActive, setDemoActive] = useState(false);
   // track whether popup has already been shown for the current open window
   const shownForSlot = useRef<number>(-1);
 
-  useEffect(() => {
-    const intervalMin = settings.captureIntervalMinutes || 60;
-    const windowMin = settings.captureWindowMinutes || 15;
+  // Effective interval/window (demo overrides real settings)
+  const intervalMin = demoActive ? DEMO_INTERVAL : (settings.captureIntervalMinutes || 60);
+  const windowMin = demoActive ? DEMO_WINDOW : (settings.captureWindowMinutes || 15);
 
+  useEffect(() => {
     const tick = () => {
       const windowOpen = isWindowOpen(intervalMin, windowMin);
       setTimerMode(windowOpen ? "open" : "waiting");
@@ -81,7 +87,24 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [settings.captureIntervalMinutes, settings.captureWindowMinutes]);
+  }, [intervalMin, windowMin, demoActive]);
+
+  const handleDemoToggle = () => {
+    if (isDemoMode()) {
+      disableDemoMode();
+      setDemoActive(false);
+      shownForSlot.current = -1;
+    } else {
+      enableDemoMode();
+      setDemoActive(true);
+      shownForSlot.current = -1;
+    }
+  };
+
+  const handleResetWindow = () => {
+    resetDemoWindow();
+    shownForSlot.current = -1;
+  };
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -119,27 +142,55 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="flex items-center justify-between mb-1">
               <span className="text-[11px] font-bold text-red-600 uppercase tracking-wider flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3" /> Capture Now!
+                {demoActive && <span className="ml-1 px-1.5 py-0.5 bg-yellow-400 text-yellow-900 text-[9px] rounded-full font-bold">DEMO</span>}
               </span>
               <span className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
             </div>
             <div className="text-3xl font-mono font-bold text-red-700 tracking-tight">{formatTime(timeLeft)}</div>
             <p className="text-[10px] text-red-500 mt-1 font-medium">
-              Window closes — {settings.captureWindowMinutes}m slot open
+              Window closes — {windowMin}m slot open
             </p>
           </div>
         ) : (
           // ── WAITING FOR NEXT SLOT ────────────────────────────────────────
           <div className="mx-4 mt-5 mb-1 bg-gray-50 border border-gray-200 rounded-xl p-4 relative overflow-hidden shadow-inner">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Next Slot Opens</span>
+              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                Next Slot Opens
+                {demoActive && <span className="ml-1 px-1.5 py-0.5 bg-yellow-400 text-yellow-900 text-[9px] rounded-full font-bold">DEMO</span>}
+              </span>
               <ClockIcon className="w-3.5 h-3.5 text-primary-500" />
             </div>
             <div className="text-3xl font-mono font-bold text-gray-900 tracking-tight">{formatTime(timeLeft)}</div>
             <p className="text-[10px] text-gray-400 mt-1">
-              Every {settings.captureIntervalMinutes}m · {settings.captureWindowMinutes}m window
+              Every {intervalMin}m · {windowMin}m window
             </p>
           </div>
         )}
+
+        {/* Demo Controls */}
+        <div className="mx-4 mt-2 mb-1 flex gap-1.5">
+          <button
+            onClick={handleDemoToggle}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all ${
+              demoActive
+                ? "bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200"
+                : "bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200 hover:text-gray-700"
+            }`}
+          >
+            {demoActive ? <Square className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+            {demoActive ? "Stop Demo" : "Demo Mode"}
+          </button>
+          {demoActive && (
+            <button
+              onClick={handleResetWindow}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-green-100 text-green-700 border border-green-300 hover:bg-green-200 transition-all"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset
+            </button>
+          )}
+        </div>
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
@@ -190,7 +241,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">Capture Window Open!</h3>
           <p className="text-sm text-gray-500 mb-2 px-4">
-            A new slot just opened. You have <strong>{settings.captureWindowMinutes} minutes</strong> to capture all active machines.
+            A new slot just opened. You have <strong>{windowMin} minutes</strong> to capture all active machines.
           </p>
           <p className="text-xs text-red-500 font-semibold mb-4">Miss this window → slot marked as Missed.</p>
           <button 
@@ -204,3 +255,4 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     </>
   );
 }
+

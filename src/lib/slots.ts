@@ -23,6 +23,45 @@ export interface SlotInfo {
   cycleTimeSeconds?: number | null;
 }
 
+// ── Demo Mode ─────────────────────────────────────────────────────────────
+// Shifts the virtual clock so we can open a fresh window on demand.
+// Production code is untouched — only the "now" input changes.
+
+let _demoMode = false;
+let _demoOffset = 0; // ms added to Date.now() to shift virtual time
+
+export const DEMO_INTERVAL = 3;   // minutes between slots in demo mode
+export const DEMO_WINDOW   = 2;   // minutes the capture window stays open
+
+/** Virtual "now" used by all slot calculations */
+function now(): number {
+  return Date.now() + _demoOffset;
+}
+
+export function isDemoMode(): boolean { return _demoMode; }
+
+export function enableDemoMode(): void {
+  _demoMode = true;
+  resetDemoWindow();           // immediately open a window
+}
+
+export function disableDemoMode(): void {
+  _demoMode = false;
+  _demoOffset = 0;
+}
+
+/** Shift the virtual clock so we land exactly at the start of a new slot */
+export function resetDemoWindow(): void {
+  const intervalMs = DEMO_INTERVAL * 60_000;
+  const midnight = todayMidnight().getTime();
+  const realElapsed = Date.now() - midnight;
+  const positionInSlot = realElapsed % intervalMs;
+  // offset = how much to subtract to get positionInSlot → 0
+  _demoOffset = -positionInSlot;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
 function formatLabel(d: Date): string {
   return d.toLocaleTimeString("en", { hour: "numeric", minute: d.getMinutes() !== 0 ? "2-digit" : undefined, hour12: true });
 }
@@ -49,14 +88,14 @@ function slotsPerDay(intervalMinutes: number): number {
 // Get the slot index that contains `now`
 export function currentSlotIndex(intervalMinutes: number): number {
   const midnight = todayMidnight().getTime();
-  const elapsed = Date.now() - midnight;
+  const elapsed = now() - midnight;
   return Math.floor(elapsed / (intervalMinutes * 60_000));
 }
 
 // Is the capture window currently open?
 export function isWindowOpen(intervalMinutes: number, windowMinutes: number): boolean {
   const midnight = todayMidnight().getTime();
-  const elapsed = Date.now() - midnight;
+  const elapsed = now() - midnight;
   const intervalMs = intervalMinutes * 60_000;
   const windowMs = windowMinutes * 60_000;
   const positionInSlot = elapsed % intervalMs;
@@ -66,7 +105,7 @@ export function isWindowOpen(intervalMinutes: number, windowMinutes: number): bo
 // Seconds until the next slot starts (ignores window, pure slot boundary)
 export function secondsUntilNextSlot(intervalMinutes: number): number {
   const midnight = todayMidnight().getTime();
-  const elapsed = Date.now() - midnight;
+  const elapsed = now() - midnight;
   const intervalMs = intervalMinutes * 60_000;
   const positionInSlot = elapsed % intervalMs;
   return Math.ceil((intervalMs - positionInSlot) / 1000);
@@ -75,7 +114,7 @@ export function secondsUntilNextSlot(intervalMinutes: number): number {
 // Seconds remaining in the current open window (0 if window is not open)
 export function secondsInWindow(intervalMinutes: number, windowMinutes: number): number {
   const midnight = todayMidnight().getTime();
-  const elapsed = Date.now() - midnight;
+  const elapsed = now() - midnight;
   const intervalMs = intervalMinutes * 60_000;
   const windowMs = windowMinutes * 60_000;
   const positionInSlot = elapsed % intervalMs;
@@ -95,9 +134,9 @@ export function buildMachineSlots(
   const midnight = todayMidnight();
   const intervalMs = intervalMinutes * 60_000;
   const windowMs = windowMinutes * 60_000;
-  const now = Date.now();
+  const virtualNow = now();
 
-  const curIdx = Math.floor((now - midnight.getTime()) / intervalMs);
+  const curIdx = Math.floor((virtualNow - midnight.getTime()) / intervalMs);
   const total = Math.min(curIdx + 1 + upcomingCount, slotsPerDay(intervalMinutes));
 
   const slots: SlotInfo[] = [];
@@ -117,9 +156,9 @@ export function buildMachineSlots(
     let status: SlotStatus;
     if (capture) {
       status = "captured";
-    } else if (now > windowEnd.getTime()) {
+    } else if (virtualNow > windowEnd.getTime()) {
       status = "missed";
-    } else if (now >= start.getTime()) {
+    } else if (virtualNow >= start.getTime()) {
       status = "open";
     } else {
       status = "upcoming";

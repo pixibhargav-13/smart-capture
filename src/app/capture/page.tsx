@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import {
   getCurrentSlot, isWindowOpen, secondsInWindow, secondsUntilNextSlot,
+  isDemoMode, DEMO_INTERVAL, DEMO_WINDOW,
 } from "@/lib/slots";
 
 // ── Live slot-timer hook ───────────────────────────────────────────────────
@@ -48,8 +49,9 @@ function fmt(secs: number) {
 export default function CapturePage() {
   const { machines, settings, addProductionEntry, getEmployeeById, productionEntries } = useApp();
 
-  const intervalMin = settings.captureIntervalMinutes || 60;
-  const windowMin = settings.captureWindowMinutes || 15;
+  const _demoOn = isDemoMode();
+  const intervalMin = _demoOn ? DEMO_INTERVAL : (settings.captureIntervalMinutes || 60);
+  const windowMin = _demoOn ? DEMO_WINDOW : (settings.captureWindowMinutes || 15);
 
   const [selectedMachine, setSelectedMachine] = useState("");
   const [captureImage, setCaptureImage] = useState<string | null>(null);

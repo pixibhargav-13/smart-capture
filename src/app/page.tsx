@@ -7,7 +7,7 @@ import {
   CheckCircle, XCircle, Clock, AlertTriangle, Camera,
   TrendingUp, Users, Gauge, Zap, FileText, Wrench, Timer, ChevronDown
 } from "lucide-react";
-import { buildMachineSlots, slotSummary, isWindowOpen, secondsInWindow, secondsUntilNextSlot } from "@/lib/slots";
+import { buildMachineSlots, slotSummary, isWindowOpen, secondsInWindow, secondsUntilNextSlot, isDemoMode, DEMO_INTERVAL, DEMO_WINDOW } from "@/lib/slots";
 import type { SlotInfo } from "@/lib/slots";
 import type { ProductionEntry } from "@/lib/context";
 
@@ -177,8 +177,9 @@ export default function Dashboard() {
   const [trendType, setTrendType] = useState<"machine" | "employee">("machine");
   const [trendId, setTrendId] = useState<string>("");
 
-  const intervalMin = settings.captureIntervalMinutes || 60;
-  const windowMin = settings.captureWindowMinutes || 15;
+  const _demoOn = isDemoMode();
+  const intervalMin = _demoOn ? DEMO_INTERVAL : (settings.captureIntervalMinutes || 60);
+  const windowMin = _demoOn ? DEMO_WINDOW : (settings.captureWindowMinutes || 15);
   const windowState = useWindowState(intervalMin, windowMin);
 
   // Re-render slots every 15s so status updates without full reload
